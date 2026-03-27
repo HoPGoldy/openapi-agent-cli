@@ -1,0 +1,43 @@
+{
+  "name": "openapi-agent-cli",
+  "version": "1.0.0",
+  "description": "OpenAPI-driven CLI for services",
+  "type": "module",
+  "bin": {
+    "oac": "./dist/index.js",
+    "openapi-agent-cli": "./dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "release": "commit-and-tag-version",
+    "prepublishOnly": "pnpm build"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "packageManager": "pnpm@10.19.0",
+  "dependencies": {
+    "@apidevtools/swagger-parser": "^10.1.1",
+    "commander": "^13.1.0",
+    "picomatch": "^4.0.4"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "@types/picomatch": "^4.0.2",
+    "commit-and-tag-version": "^12.7.1",
+    "execa": "^9.5.2",
+    "tsup": "^8.4.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.8.2",
+    "vitest": "^3.1.1"
+  }
+}

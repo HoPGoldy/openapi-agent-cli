@@ -1,0 +1,237 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Test API",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/diary/getMonthList": {
+      "post": {
+        "description": "获取月份列表",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "month"
+                ],
+                "properties": {
+                  "month": {
+                    "type": "string",
+                    "description": "月份，格式 YYYY-MM"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/diary/getDetail": {
+      "post": {
+        "description": "获取日记详情"
+      }
+    },
+    "/api/diary/update": {
+      "post": {
+        "description": "更新日记"
+      }
+    },
+    "/api/attachments/upload": {
+      "post": {
+        "description": "上传文件",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  },
+                  "description": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/attachments/download": {
+      "get": {
+        "description": "下载文件",
+        "parameters": [
+          {
+            "name": "fileId",
+            "in": "query",
+            "required": true,
+            "description": "文件ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/api/attachments/request/{fileId}": {
+      "get": {
+        "description": "请求文件",
+        "parameters": [
+          {
+            "name": "fileId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "summary": "用户登录"
+      }
+    },
+    "/api/items/{itemId}": {
+      "parameters": [
+        {
+          "name": "itemId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          },
+          "description": "Item identifier"
+        }
+      ],
+      "get": {
+        "description": "Get item by ID",
+        "parameters": [
+          {
+            "name": "fields",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "id,name"
+            },
+            "description": "Comma-separated field names"
+          }
+        ]
+      },
+      "put": {
+        "deprecated": true,
+        "description": "Update item (use PATCH instead)",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/search": {
+      "post": {
+        "description": "Search with composed schema",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "type": "object",
+                    "required": [
+                      "query"
+                    ],
+                    "properties": {
+                      "query": {
+                        "type": "string",
+                        "description": "Search query"
+                      }
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "page": {
+                        "type": "integer",
+                        "default": 1
+                      },
+                      "limit": {
+                        "type": "integer",
+                        "default": 20,
+                        "enum": [
+                          10,
+                          20,
+                          50,
+                          100
+                        ]
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/form-login": {
+      "post": {
+        "description": "Login via form",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "username",
+                  "password"
+                ],
+                "properties": {
+                  "username": {
+                    "type": "string"
+                  },
+                  "password": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/xml/data": {
+      "post": {
+        "description": "Submit XML data",
+        "requestBody": {
+          "content": {
+            "application/xml": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "payload": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
