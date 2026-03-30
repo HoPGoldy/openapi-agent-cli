@@ -7,6 +7,13 @@ All notable changes to this project will be documented in this file. See [commit
 
 ### Bug Fixes
 
+* unify response handling, add e2e tests, fix publish workflow ([c067a1d](https://github.com/HoPGoldy/openapi-agent-cli/commit/c067a1d0430137d69b6273761fbcc2fcc19af586))
+
+## 1.0.1 (2026-03-30)
+
+
+### Bug Fixes
+
 * unify response handling, add e2e tests, fix publish workflow ([cd9dec2](https://github.com/HoPGoldy/openapi-agent-cli/commit/cd9dec225ef69cd00d0d4c5f09b5b198283f9b7c))
 
 ## 1.0.1 (2026-03-30)
