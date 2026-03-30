@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { mkdtempSync, rmSync, readFileSync } from "node:fs";
+import { existsSync, mkdtempSync, rmSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { apiRequest, apiUpload, apiFormRequest, apiRawRequest } from "../src/request.js";
@@ -126,12 +126,11 @@ describe("apiRequest", () => {
   });
 
   it("extracts filename from Content-Disposition", async () => {
+    const repoRoot = process.cwd();
     const tempDir = mkdtempSync(join(tmpdir(), "oac-req-test-"));
     const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
 
-    // Mock process.cwd to use tempDir so the file is saved there
-    const origCwd = process.cwd;
-    process.cwd = () => tempDir;
+    process.chdir(tempDir);
 
     const binaryData = Buffer.from([1, 2, 3]);
     vi.spyOn(globalThis, "fetch").mockResolvedValue(
@@ -145,11 +144,16 @@ describe("apiRequest", () => {
     );
 
     const result = await apiRequest(baseConfig, "GET", "/api/download");
-    expect(result).toBeNull();
-    expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("photo.jpg"));
-
-    process.cwd = origCwd;
-    rmSync(tempDir, { recursive: true, force: true });
+    try {
+      expect(result).toBeNull();
+      expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("photo.jpg"));
+      expect(existsSync(join(tempDir, "photo.jpg"))).toBe(true);
+      expect(existsSync(join(repoRoot, "photo.jpg"))).toBe(false);
+    } finally {
+      process.chdir(repoRoot);
+      rmSync(join(repoRoot, "photo.jpg"), { force: true });
+      rmSync(tempDir, { recursive: true, force: true });
+    }
   });
 
   it("sets timeout via AbortSignal", async () => {
@@ -164,6 +168,20 @@ describe("apiRequest", () => {
 
     const calledOpts = fetchSpy.mock.calls[0][1] as any;
     expect(calledOpts.signal).toBeDefined();
+  });
+
+  it("falls back to text when content-type says JSON but body is not valid JSON", async () => {
+    const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response("Pet deleted", {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+
+    const result = await apiRequest(baseConfig, "DELETE", "/api/pet/1");
+    expect(result).toBeNull();
+    expect(logSpy).toHaveBeenCalledWith("Pet deleted");
   });
 });
 
@@ -268,6 +286,34 @@ describe("apiUpload", () => {
     const calledUrl = fetchSpy.mock.calls[0][0] as URL;
     expect(calledUrl.toString()).toContain("folder=docs");
   });
+
+  it("handles text response from upload", async () => {
+    const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response("Upload complete", {
+        status: 200,
+        headers: { "Content-Type": "text/plain" },
+      }),
+    );
+
+    const result = await apiUpload(baseConfig, "/api/upload", { name: "test" }, new Set<string>());
+    expect(result).toBeNull();
+    expect(logSpy).toHaveBeenCalledWith("Upload complete");
+  });
+
+  it("falls back to text when upload response claims JSON but is not", async () => {
+    const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response("OK", {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+
+    const result = await apiUpload(baseConfig, "/api/upload", { name: "test" }, new Set<string>());
+    expect(result).toBeNull();
+    expect(logSpy).toHaveBeenCalledWith("OK");
+  });
 });
 
 describe("apiFormRequest", () => {
@@ -343,6 +389,34 @@ describe("apiFormRequest", () => {
     );
     expect(stderrSpy).toHaveBeenCalledWith("✗ [400] Bad Request");
   });
+
+  it("handles text response from form submission", async () => {
+    const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response("Login successful", {
+        status: 200,
+        headers: { "Content-Type": "text/plain" },
+      }),
+    );
+
+    const result = await apiFormRequest(baseConfig, "POST", "/api/login", { user: "admin" });
+    expect(result).toBeNull();
+    expect(logSpy).toHaveBeenCalledWith("Login successful");
+  });
+
+  it("falls back to text when form response claims JSON but is not", async () => {
+    const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response("Success", {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+
+    const result = await apiFormRequest(baseConfig, "POST", "/api/form", { key: "val" });
+    expect(result).toBeNull();
+    expect(logSpy).toHaveBeenCalledWith("Success");
+  });
 });
 
 describe("apiRawRequest", () => {
@@ -416,5 +490,19 @@ describe("apiRawRequest", () => {
       "process.exit called",
     );
     expect(stderrSpy).toHaveBeenCalledWith("✗ [500] Server Error");
+  });
+
+  it("falls back to text when raw response claims JSON but is not", async () => {
+    const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response("Accepted", {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+
+    const result = await apiRawRequest(baseConfig, "POST", "/api/raw", "application/xml", "<data/>");
+    expect(result).toBeNull();
+    expect(logSpy).toHaveBeenCalledWith("Accepted");
   });
 });

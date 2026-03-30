@@ -24,6 +24,10 @@
   "keywords": [],
   "author": "",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/HoPGoldy/openapi-agent-cli.git"
+  },
   "packageManager": "pnpm@10.19.0",
   "dependencies": {
     "@apidevtools/swagger-parser": "^10.1.1",

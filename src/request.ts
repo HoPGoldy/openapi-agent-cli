@@ -9,6 +9,40 @@ function getFilenameFromResponse(res: Response): string | null {
   return match?.[1] ? decodeURIComponent(match[1]) : null;
 }
 
+async function handleResponse(res: Response, output?: string): Promise<unknown | null> {
+  const contentType = res.headers.get("content-type") ?? "";
+
+  const isJson = contentType.includes("application/json");
+  const isText = contentType.startsWith("text/") || contentType.includes("xml");
+
+  // Binary response → save to file
+  if (!isJson && !isText) {
+    const savePath = output ?? getFilenameFromResponse(res) ?? "download";
+    const buffer = Buffer.from(await res.arrayBuffer());
+    await writeFile(savePath, buffer);
+    const sizeKB = (buffer.byteLength / 1024).toFixed(1);
+    console.log(`✓ Saved to ${savePath} (${sizeKB} KB)`);
+    return null;
+  }
+
+  // Read body as text first for safe JSON parsing
+  const text = await res.text();
+
+  // Text response (non-JSON)
+  if (isText && !isJson) {
+    console.log(text);
+    return null;
+  }
+
+  // JSON response (with fallback for invalid JSON body)
+  try {
+    return JSON.parse(text);
+  } catch {
+    console.log(text);
+    return null;
+  }
+}
+
 export async function apiRequest(
   config: ServiceConfig,
   method: string,
@@ -43,27 +77,7 @@ export async function apiRequest(
     process.exit(1);
   }
 
-  const contentType = res.headers.get("content-type") ?? "";
-
-  // Binary response → save to file
-  if (!contentType.includes("application/json") && !contentType.startsWith("text/")) {
-    const savePath = output ?? getFilenameFromResponse(res) ?? "download";
-    const buffer = Buffer.from(await res.arrayBuffer());
-    await writeFile(savePath, buffer);
-    const sizeKB = (buffer.byteLength / 1024).toFixed(1);
-    console.log(`✓ Saved to ${savePath} (${sizeKB} KB)`);
-    return null;
-  }
-
-  // Text response
-  if (contentType.startsWith("text/") && !contentType.includes("application/json")) {
-    const text = await res.text();
-    console.log(text);
-    return null;
-  }
-
-  // JSON response
-  return await res.json();
+  return handleResponse(res, output);
 }
 
 export async function apiFormRequest(
@@ -106,7 +120,7 @@ export async function apiFormRequest(
     process.exit(1);
   }
 
-  return await res.json();
+  return handleResponse(res);
 }
 
 export async function apiRawRequest(
@@ -143,13 +157,7 @@ export async function apiRawRequest(
     process.exit(1);
   }
 
-  const resContentType = res.headers.get("content-type") ?? "";
-  if (resContentType.includes("application/json")) {
-    return await res.json();
-  }
-  const text = await res.text();
-  console.log(text);
-  return null;
+  return handleResponse(res);
 }
 
 export async function apiUpload(
@@ -193,5 +201,5 @@ export async function apiUpload(
     process.exit(1);
   }
 
-  return await res.json();
+  return handleResponse(res);
 }

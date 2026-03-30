@@ -46,11 +46,11 @@ oac diary post-api-diary-get-month-list --body '{"month":"202603"}'
 oac diary get-api-attachments-download --query '{"fileId":"abc123"}'
 
 # 8. 文件上传（format: binary 字段自动识别为文件路径）
-oac diary post-api-attachments-upload --body '{"file": "./photo.jpg"}'
+oac diary post-api-attachments-upload --body '{"file": "./path/to/photo.jpg"}'
 # { "id": "abc123", "filename": "photo.jpg" }
 
 # 文件 + 额外字段
-oac diary post-api-attachments-upload --body '{"file": "./photo.jpg", "description": "旅行照片"}'
+oac diary post-api-attachments-upload --body '{"file": "./path/to/photo.jpg", "description": "旅行照片"}'
 
 # 9. 查看可用命令（从 spec 动态生成）
 oac diary --help

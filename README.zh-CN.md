@@ -1,4 +1,4 @@
-# oac - OpenAPI Agent CLI
+# oac - openapi agent cli
 
 [![Node.js](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](https://nodejs.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
@@ -91,7 +91,7 @@ oac my-api get-api-files --query '{"format": "json", "limit": 10}'
 oac my-api get-api-data --header '{"X-Custom": "value"}'
 
 # 文件上传（multipart）
-oac my-api post-api-attachments-upload --body '{"file": "./photo.jpg", "description": "我的照片"}'
+oac my-api post-api-attachments-upload --body '{"file": "./path/to/photo.jpg", "description": "我的照片"}'
 
 # 下载二进制文件
 oac my-api get-api-files-download --query '{"fileId": "123"}' --output ./result.pdf
